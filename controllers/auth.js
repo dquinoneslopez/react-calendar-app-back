@@ -18,7 +18,11 @@ const createUser = async(req, res = response) => {
         }
 
         user = new User(req.body);
+
         // password encryption
+        const salt = bcrypt.genSaltSync();
+        user.password = bcrypt.hashSync(password, salt);
+
         await user.save();
 
         res.status(201).json({
