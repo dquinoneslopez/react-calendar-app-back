@@ -1,6 +1,7 @@
 const { response } = require('express');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { generateJWT } = require('../helpers/jwt');
 
 const createUser = async(req, res = response) => {
 
@@ -25,10 +26,14 @@ const createUser = async(req, res = response) => {
 
         await user.save();
 
+        // Generate JWT
+        const token = await generateJWT(user.id, user.name);
+
         res.status(201).json({
             ok: true,
             uid: user.id,
-            name: user.name
+            name: user.name,
+            token
         });
 
     } catch (error) {
@@ -42,26 +47,65 @@ const createUser = async(req, res = response) => {
 
 };
 
-const loginUser = (req, res = response) => {
+const loginUser = async(req, res = response) => {
     const { email, password } = req.body;
 
-    res.json({
-        ok: true,
-        msg: 'login',
-        email,
-        password
-    })
+    try {
+
+        let user = await User.findOne({ email });
+
+        if (!user) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Incorrect user or password'
+            })
+        }
+
+        const validPassword = bcrypt.compareSync(password, user.password);
+
+        if (!validPassword) {
+            return res.status(400).json({
+                ok: false,
+                msg: 'Incorrect user or password'
+            })
+        }
+
+        // Generate JWT
+        const token = await generateJWT(user.id, user.name);
+
+        res.json({
+            ok: true,
+            uid: user.id,
+            name: user.name,
+            token
+        });
+
+    } catch (error) {
+
+        res.status(500).json({
+            ok: false,
+            msg: 'Please, contact administrator'
+        });
+
+    }
+
 };
 
-const renewUser = (req, res = response) => {
+const revalidateToken = async(req, res = response) => {
+
+    const { uid, name } = req;
+
+    const token = await generateJWT(uid, name);
+
     res.json({
         ok: true,
-        msg: 'renew'
+        uid,
+        name
     })
 };
 
 module.exports = {
     createUser,
     loginUser,
-    renewUser
+    revalidateToken
 }
