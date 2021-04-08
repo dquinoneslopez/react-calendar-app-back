@@ -53,11 +53,42 @@ const createEvent = async(req, res = response) => {
 }
 
 const updateEvent = async(req, res = response) => {
+
+    const eventId = req.params.id;
+    const uid = req.uid;
+
     try {
+
+        const event = await Event.findById(eventId);
+
+        if (!event) {
+
+            res.status(404).json({
+                ok: false,
+                msg: 'No event with that id'
+            });
+
+        }
+
+        if (event.user.toString() !== uid) {
+
+            res.status(401).json({
+                ok: false,
+                msg: 'You are not allowed to do that'
+            });
+
+        }
+
+        const newEvent = {
+            ...req.body,
+            user: uid
+        };
+
+        const updatedEvent = await Event.findByIdAndUpdate(eventId, newEvent, { new: true });
 
         res.status(201).json({
             ok: true,
-            msg: '[EVENT] updateEvent'
+            event: updatedEvent
         });
 
     } catch (error) {
