@@ -26,14 +26,17 @@ const getEvents = async(req, res = response) => {
 
 const createEvent = async(req, res = response) => {
 
+    const event = new Event(req.body);
+
     try {
 
-        const event = new Event(req.body);
-        await event.save();
+        event.user = req.uid;
+
+        const eventDB = await event.save();
 
         res.status(201).json({
             ok: true,
-            msg: '[EVENT] createEvent'
+            event: eventDB
         });
 
     } catch (error) {
