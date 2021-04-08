@@ -1,11 +1,6 @@
 const { response } = require('express');
 const Event = require('../models/Event');
 
-// {
-//     ok: true,
-//     msg: 'event name'
-// }
-
 const getEvents = async(req, res = response) => {
 
     const events = await Event.find().populate('user', 'name');
@@ -63,7 +58,7 @@ const updateEvent = async(req, res = response) => {
 
         if (!event) {
 
-            res.status(404).json({
+            return res.status(404).json({
                 ok: false,
                 msg: 'No event with that id'
             });
@@ -72,7 +67,7 @@ const updateEvent = async(req, res = response) => {
 
         if (event.user.toString() !== uid) {
 
-            res.status(401).json({
+            return res.status(401).json({
                 ok: false,
                 msg: 'You are not allowed to do that'
             });
@@ -102,11 +97,37 @@ const updateEvent = async(req, res = response) => {
 }
 
 const deleteEvent = async(req, res = response) => {
+
+    const eventId = req.params.id;
+    const uid = req.uid;
+
     try {
+
+        const event = await Event.findById(eventId);
+
+        if (!event) {
+
+            return res.status(404).json({
+                ok: false,
+                msg: 'No event with that id'
+            });
+
+        }
+
+        if (event.user.toString() !== uid) {
+
+            return res.status(401).json({
+                ok: false,
+                msg: 'You are not allowed to do that'
+            });
+
+        }
+
+        const eventDeleted = await Event.findByIdAndDelete(eventId);
 
         res.status(201).json({
             ok: true,
-            msg: '[EVENT] deleteEvent'
+            event: eventDeleted
         });
 
     } catch (error) {
