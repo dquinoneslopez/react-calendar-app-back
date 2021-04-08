@@ -1,35 +1,24 @@
 const { Schema, model } = require('mongoose');
 
 const EventSchema = Schema({
-    name: {
+    title: {
         type: String,
         require: true
     },
-    id: {
-        type: Date,
-    },
-    title: {
-        type: String
-    },
     start: {
-        type: Date
+        type: Date,
+        require: true
     },
     end: {
-        type: Date
-    },
-    bgcolor: {
-        type: String
+        type: Date,
+        require: true
     },
     notes: {
         type: String
     },
     user: {
-        _id: {
-            type: String
-        },
-        name: {
-            type: String
-        }
+        type: Schema.Types.ObjectId,
+        ref: 'User'
     }
 });
 
